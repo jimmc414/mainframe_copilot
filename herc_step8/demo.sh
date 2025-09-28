@@ -51,8 +51,41 @@ check_service() {
     fi
 }
 
+check_mvs_files() {
+    echo -e "${YELLOW}Checking for MVS files...${NC}"
+
+    if [ ! -d "$HERC_HOME/mvs38j/mvs-tk5" ]; then
+        echo -e "${RED}✗${NC} MVS TK5 not found at $HERC_HOME/mvs38j/mvs-tk5"
+        echo
+        echo "MVS 3.8J system files are required but not included in the repository."
+        echo "The files are 1.1GB and must be downloaded separately."
+        echo
+        echo "To download MVS TK5, run:"
+        echo "  /mnt/c/python/mainframe_copilot/scripts/download_mvs.sh"
+        echo
+        echo "Or download manually from:"
+        echo "  http://wotho.ethz.ch/tk4-/tk4-_v1.00_current.zip"
+        echo "And extract to: $HERC_HOME/mvs38j/"
+        echo
+        exit 1
+    fi
+
+    # Check for required files
+    if [ ! -f "$HERC_HOME/mvs38j/mvs-tk5/conf/tk5.cnf" ]; then
+        echo -e "${RED}✗${NC} MVS configuration file not found"
+        echo "MVS TK5 installation appears incomplete."
+        echo "Please run: /mnt/c/python/mainframe_copilot/scripts/download_mvs.sh"
+        exit 1
+    fi
+
+    echo -e "${GREEN}✓${NC} MVS files found"
+}
+
 start_hercules() {
     echo -e "${YELLOW}Starting Hercules mainframe emulator...${NC}"
+
+    # Check MVS files first
+    check_mvs_files
 
     # Check if already running
     if pgrep hercules > /dev/null; then

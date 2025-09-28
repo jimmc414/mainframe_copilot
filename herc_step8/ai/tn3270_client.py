@@ -75,12 +75,25 @@ class TN3270Bridge:
 
 
 class FlowRunner:
-    """Simple flow runner wrapper"""
+    """Flow runner wrapper that uses the real flow_runner module"""
 
     def __init__(self, bridge: TN3270Bridge):
         self.bridge = bridge
+        # Import the real flow runner
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        from flow_runner import FlowRunner as RealFlowRunner
+
+        # Create instance of real flow runner
+        self.runner = RealFlowRunner(host=bridge.base_url.replace("http://", ""))
 
     def run(self, flow_path: str) -> bool:
-        """Run flow (simplified)"""
-        # This is a placeholder - actual flow runner is more complex
-        return True
+        """Run flow using real flow runner"""
+        try:
+            # Use the real flow runner's run method
+            result = self.runner.run(flow_path)
+            return result.get("success", False) if isinstance(result, dict) else result
+        except Exception as e:
+            print(f"Flow execution error: {e}")
+            return False

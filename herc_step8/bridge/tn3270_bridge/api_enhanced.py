@@ -82,6 +82,13 @@ class FillRequest(BaseModel):
 
 class PressRequest(BaseModel):
     key: str = Field(description="Key to press (Enter, PF1-PF12, PA1-PA3, Clear)")
+    # Also support 'aid' for backward compatibility with flow_runner
+    aid: Optional[str] = Field(default=None, description="Alternative to 'key' for compatibility")
+
+class FillByLabelRequest(BaseModel):
+    label: str = Field(description="Label to search for on screen")
+    value: str = Field(description="Text to fill")
+    offset: int = Field(default=1, description="Field offset from label")
 
 class WaitRequest(BaseModel):
     condition: str = Field(default="ready", description="Condition to wait for")
@@ -337,16 +344,21 @@ async def press(request: PressRequest):
     if not session:
         raise HTTPException(status_code=500, detail="Session not initialized")
 
+    # Support both 'key' and 'aid' for backward compatibility
+    key_to_press = request.key if request.key else request.aid
+    if not key_to_press:
+        raise HTTPException(status_code=400, detail="Must provide either 'key' or 'aid'")
+
     # Validate key
     valid_keys = ["Enter", "Clear"] + [f"PF{i}" for i in range(1, 13)] + [f"PA{i}" for i in range(1, 4)]
-    if request.key not in valid_keys:
-        raise HTTPException(status_code=400, detail=f"Invalid key: {request.key}")
+    if key_to_press not in valid_keys:
+        raise HTTPException(status_code=400, detail=f"Invalid key: {key_to_press}")
 
     try:
-        result = session.execute(f"{request.key}()")
+        result = session.execute(f"{key_to_press}()")
 
         # Update metadata
-        session_metadata["last_action"] = f"press_{request.key}"
+        session_metadata["last_action"] = f"press_{key_to_press}"
         session_metadata["last_action_time"] = datetime.now().isoformat()
         session_metadata["action_count"] += 1
 
@@ -355,7 +367,34 @@ async def press(request: PressRequest):
 
         # Return updated screen
         screen = session.snapshot()
-        return {"status": "success", "key": request.key, "screen": screen}
+        return {"status": "success", "key": key_to_press, "screen": screen}
+
+    except Exception as e:
+        session_metadata["error_count"] += 1
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Fill by label endpoint
+@app.post("/fill_by_label")
+async def fill_by_label(request: FillByLabelRequest):
+    """Find label on screen and fill associated field"""
+    global session, session_metadata
+
+    if not session:
+        raise HTTPException(status_code=500, detail="Session not initialized")
+
+    try:
+        # Use session's fill_by_label method
+        result = session.fill_by_label(request.label, request.offset, request.value)
+
+        # Update metadata
+        session_metadata["last_action"] = f"fill_by_label_{request.label}"
+        session_metadata["last_action_time"] = datetime.now().isoformat()
+        session_metadata["action_count"] += 1
+
+        if result:
+            return {"status": "ok", "label": request.label, "value_length": len(request.value)}
+        else:
+            return {"status": "error", "message": f"Label '{request.label}' not found"}
 
     except Exception as e:
         session_metadata["error_count"] += 1

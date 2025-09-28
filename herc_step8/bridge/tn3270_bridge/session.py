@@ -222,12 +222,13 @@ class S3270Session:
         """Move cursor to position (1-based)"""
         self._send_command(f"MoveCursor({row},{col})")
 
-    def fill_at(self, row: int, col: int, text: str, enter: bool = False):
+    def fill_at(self, row: int, col: int, text: str, enter: bool = False) -> Dict[str, Any]:
         """Fill field at position"""
         self.move_cursor(row, col)
         self.send_text(text)
         if enter:
             self.press("Enter")
+        return {"status": "ok", "row": row, "col": col, "text_length": len(text)}
 
     def fill_by_label(self, label: str, offset: int, text: str) -> bool:
         """Find label and fill field at offset"""

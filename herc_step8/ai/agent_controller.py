@@ -362,9 +362,37 @@ Respond with appropriate tool call."""
         # Get LLM response
         response = self.cli.invoke(full_prompt, system=self.system_prompt)
 
-        # Execute suggested action
+        # Parse LLM response to extract action
         if "action" in response:
+            # Direct action in response (structured)
             return self._process_command(response)
+        elif "content" in response:
+            # Parse content for action keywords
+            content = response.get("content", "").lower()
+
+            # Try to extract action from natural language
+            if "login" in content or "logon" in content:
+                return self.run_flow("login.yaml")
+            elif "logout" in content or "logoff" in content:
+                return self.run_flow("logout.yaml")
+            elif "enter" in content or "press enter" in content:
+                return self.press("Enter")
+            elif "clear" in content:
+                return self.press("Clear")
+            elif "fill" in content and "field" in content:
+                # Extract field details from content if possible
+                import re
+                match = re.search(r'fill.*?(\d+).*?(\d+).*?"([^"]+)"', content)
+                if match:
+                    row, col, text = match.groups()
+                    return self.fill(int(row), int(col), text)
+            elif "connect" in content:
+                return self.connect()
+            elif "disconnect" in content:
+                return self.disconnect()
+
+            # If no action detected, return the LLM response as-is
+            return {"message": response.get("content", "No action determined")}
 
         return response
 

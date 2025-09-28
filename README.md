@@ -10,6 +10,58 @@ This project creates a fully automated IBM mainframe environment (MVS 3.8J) runn
 **Production Capability (What It Enables):**
 The same AI Copilot and TN3270 automation demonstrated here can connect directly to live production IBM mainframes, providing identical natural language control and automation capabilities for real enterprise mainframe operations.
 
+## Project Architecture
+
+### Why MVS Files Are Not in Git
+The MVS 3.8J system files (1.1GB) are not included in the repository because:
+- **Size**: MVS disk images and Hercules binaries total 1.1GB, too large for Git
+- **Binary files**: DASD volumes are binary disk images (260MB)
+- **Platform-specific**: Hercules binaries vary by operating system
+- **Licensing**: MVS distribution should be obtained from official sources
+
+### Directory Layout
+The project uses a split directory structure for maintainability:
+
+**Repository Structure (in Git):**
+```
+/mnt/c/python/mainframe_copilot/    # Windows-accessible via WSL2
+├── mainframe_copilot/               # Python package (~20MB total)
+│   ├── ai/                         # AI agent code
+│   ├── bridge/                     # TN3270 bridge API
+│   ├── flows/                      # YAML automation workflows
+│   └── tools/                      # Utilities and helpers
+├── scripts/                         # Setup and startup scripts
+├── docs/                           # Documentation
+└── herc_step8/                     # Current working version
+```
+
+**Runtime Structure (created during setup):**
+```
+~/herc/                              # WSL2 runtime location
+├── mvs38j/                         # MVS system (1.1GB) - downloaded separately
+│   └── mvs-tk5/                    # TK5 distribution
+│       ├── dasd/                   # Disk images (260MB)
+│       ├── hercules/               # Emulator binaries (161MB)
+│       └── conf/                   # Configuration files
+├── ai/                             # Linked from repository
+├── bridge/                         # Linked from repository
+├── flows/                          # Linked from repository
+├── tools/                          # Linked from repository
+└── logs/                           # Runtime logs (created)
+```
+
+### Setup Process
+1. **Clone repository** - Gets automation code (~20MB)
+2. **Run setup script** - Installs Python dependencies
+3. **Download MVS separately** - Gets MVS TK5 files (1.1GB)
+4. **Link directories** - Creates runtime structure in ~/herc
+
+### Why This Architecture
+- **Git-friendly**: Only source code in repository, no large binaries
+- **Platform-independent**: MVS downloaded for user's specific OS
+- **Development-friendly**: Edit code in repo, runs from ~/herc
+- **CI/CD compatible**: Tests can use mock MVS without full system
+
 ## What It Does
 
 This system creates a complete IBM mainframe environment on your local machine and allows you to control it through:

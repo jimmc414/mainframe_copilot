@@ -134,7 +134,7 @@ class FlowRunner:
 
         response = requests.post(
             f"{self.api_url}/press",
-            json={"aid": aid}
+            json={"key": aid}  # Changed from 'aid' to 'key' for api_enhanced compatibility
         )
 
         return response.status_code == 200
