@@ -47,6 +47,41 @@ class ClaudeCLI:
         self.logger.warning("Claude CLI not found. Using mock mode.")
         return None
 
+    def _mock_invoke(self, prompt: str, max_tokens: int = 2000) -> str:
+        """Mock LLM responses for testing"""
+        import random
+        import time
+
+        # Simulate processing delay
+        time.sleep(random.uniform(0.5, 1.5))
+
+        # Pattern-based mock responses
+        prompt_lower = prompt.lower()
+
+        if "connect" in prompt_lower:
+            return "I'll connect to the mainframe at 127.0.0.1:3270"
+        elif "login" in prompt_lower or "tso" in prompt_lower:
+            return "I'll login to TSO using the provided credentials HERC02"
+        elif "screen" in prompt_lower or "read" in prompt_lower:
+            return "The screen shows the TSO logon prompt. I can see 'Logon ==>' field."
+        elif "logout" in prompt_lower or "logoff" in prompt_lower:
+            return "I'll logout from the TSO session using the LOGOFF command"
+        elif "error" in prompt_lower or "keyboard" in prompt_lower:
+            return "I'll clear the keyboard lock by pressing the Clear key"
+        elif "ispf" in prompt_lower:
+            return "I'll navigate to ISPF by entering the ISPF command"
+        elif "dataset" in prompt_lower:
+            return "I'll list the datasets using option 3.4 in ISPF"
+        else:
+            # Generic response
+            actions = [
+                "I'll execute the requested command",
+                "Processing your request",
+                "I'll perform that action now",
+                "Executing the specified operation"
+            ]
+            return random.choice(actions)
+
     def invoke(self,
                prompt: str,
                system: Optional[str] = None,
@@ -56,7 +91,12 @@ class ClaudeCLI:
 
         if not self.claude_path:
             # Mock response for testing
-            return self._mock_response(prompt)
+            mock_text = self._mock_invoke(prompt)
+            return {
+                "status": "success",
+                "content": mock_text,
+                "usage": {"tokens": len(mock_text.split())}
+            }
 
         try:
             # Build command
@@ -118,32 +158,6 @@ class ClaudeCLI:
             self.logger.error(f"Claude invocation failed: {e}")
             return {"error": str(e)}
 
-    def _mock_response(self, prompt: str) -> Dict[str, Any]:
-        """Generate mock response for testing"""
-        # Simple pattern matching for common requests
-        prompt_lower = prompt.lower()
-
-        if "screen" in prompt_lower and "contains" in prompt_lower:
-            return {
-                "action": "assert_screen",
-                "contains": "READY"
-            }
-        elif "login" in prompt_lower:
-            return {
-                "action": "flow",
-                "flow_name": "login.yaml"
-            }
-        elif "fill" in prompt_lower:
-            return {
-                "action": "fill",
-                "field": "userid",
-                "value": "HERC02"
-            }
-        else:
-            return {
-                "action": "wait",
-                "timeout": 5000
-            }
 
     def invoke_with_tools(self,
                           prompt: str,
@@ -190,10 +204,10 @@ class ClaudeStreamWrapper:
     def stream_invoke(self, prompt: str, callback=None) -> str:
         """Invoke Claude with streaming output"""
         if not self.cli.claude_path:
-            response = self.cli._mock_response(prompt)
+            response = self.cli._mock_invoke(prompt)
             if callback:
-                callback(json.dumps(response))
-            return json.dumps(response)
+                callback(response)
+            return response
 
         try:
             # Use --print flag for streaming

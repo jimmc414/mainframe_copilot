@@ -15,6 +15,18 @@ NC='\033[0m' # No Color
 HERC_HOME="${HOME}/herc"
 cd "$HERC_HOME"
 
+# Cleanup function for graceful shutdown
+cleanup() {
+    echo -e "${YELLOW}Cleaning up processes...${NC}"
+    pkill -f "tn3270_bridge" 2>/dev/null || true
+    pkill -f "run_agent.py" 2>/dev/null || true
+    pkill s3270 2>/dev/null || true
+    echo -e "${GREEN}✓${NC} Cleanup complete"
+}
+
+# Set trap for cleanup on exit or error
+trap cleanup EXIT ERR
+
 # Parse arguments
 MODE="${1:-batch}"  # Default to batch mode
 GOAL="${2:-login_logout}"  # Default scenario
@@ -59,6 +71,20 @@ start_hercules() {
         fi
 
         echo -e "${GREEN}✓${NC} Hercules started"
+
+        # Wait for MVS to fully boot
+        echo "Waiting for MVS to become ready..."
+        local attempts=0
+        while [ $attempts -lt 30 ]; do
+            if nc -z 127.0.0.1 3270 2>/dev/null; then
+                echo -e "${GREEN}✓${NC} MVS is responsive on port 3270"
+                break
+            fi
+            sleep 2
+            attempts=$((attempts + 1))
+            echo -n "."
+        done
+        echo
     fi
 
     cd "$HERC_HOME"
@@ -79,12 +105,8 @@ start_bridge() {
         source venv/bin/activate
     fi
 
-    # Use enhanced API if available
-    if [ -f "tn3270_bridge/api_enhanced.py" ]; then
-        nohup python -m tn3270_bridge.api_enhanced > "$HERC_HOME/logs/bridge.log" 2>&1 &
-    else
-        nohup python -m tn3270_bridge.api > "$HERC_HOME/logs/bridge.log" 2>&1 &
-    fi
+    # Always use enhanced API for health endpoints
+    nohup python -m tn3270_bridge.api_enhanced > "$HERC_HOME/logs/bridge.log" 2>&1 &
 
     echo "Waiting for API to start..."
     sleep 5

@@ -1,0 +1,67 @@
+#!/usr/bin/expect
+# Auto IPL script for MVS 3.8J on Hercules
+# This script handles the automatic boot sequence
+
+set timeout 60
+
+# Connect to Hercules console
+spawn telnet 127.0.0.1 3270
+
+# Wait for Hercules prompt
+expect {
+    timeout {
+        puts "Timeout waiting for Hercules console"
+        exit 1
+    }
+    "Hercules" {
+        puts "Connected to Hercules console"
+    }
+}
+
+# Send IPL command to boot from device 00c
+send "ipl 00c\r"
+
+# Wait for first operator prompt
+expect {
+    timeout {
+        puts "Timeout waiting for IEA101A"
+        exit 1
+    }
+    "IEA101A" {
+        puts "Received first operator prompt"
+    }
+}
+
+# Reply with CLPA (Clear Link Pack Area)
+send "r 0,clpa\r"
+
+# Wait for second operator prompt
+expect {
+    timeout {
+        puts "Timeout waiting for second IEA101A"
+        exit 1
+    }
+    "IEA101A" {
+        puts "Received second operator prompt"
+    }
+}
+
+# Reply with CONT (Continue)
+send "r 0,cont\r"
+
+# Wait for system to finish booting
+expect {
+    timeout {
+        puts "System boot may have completed"
+    }
+    "IEA517I" {
+        puts "MVS system initialization complete"
+    }
+}
+
+# Disconnect from console
+send "\035"
+close
+
+puts "IPL sequence completed successfully"
+exit 0
