@@ -1,0 +1,73 @@
+name: "KICKS Demo Transaction"
+steps:
+  - wait_ready:
+      timeout_ms: 5000
+
+  # Clear transaction area
+  - press:
+      aid: "Clear"
+
+  - wait_ready:
+      timeout_ms: 2000
+
+  # Try DEMO transaction
+  - fill_at:
+      row: 1
+      col: 1
+      value: "DEMO"
+
+  - press:
+      aid: "Enter"
+
+  - wait_change:
+      timeout_ms: 5000
+
+  # Save demo screen
+  - snapshot:
+      name: "KICKS_DEMO_SCREEN"
+
+  # Wait a moment to view
+  - sleep_ms: 2000
+
+  # Exit demo with PF3 (standard exit key)
+  - press:
+      aid: "PF3"
+
+  - wait_change:
+      timeout_ms: 5000
+
+  # Should be back at KICKS menu/prompt
+  - assert_screen:
+      any:
+        - ascii_contains: "KICKS"
+        - ascii_contains: "KSGM"
+        - ascii_contains: "Transaction"
+
+recovery:
+  # If DEMO not available, try KSMT (menu transaction)
+  - when_ascii_contains: "TRANSACTION NOT RECOGNIZED"
+    do:
+      - press:
+          aid: "Clear"
+      - wait_ready:
+          timeout_ms: 2000
+      - fill_at:
+          row: 1
+          col: 1
+          value: "KSMT"
+      - press:
+          aid: "Enter"
+      - wait_change:
+          timeout_ms: 5000
+      - snapshot:
+          name: "KICKS_MENU_SCREEN"
+      - press:
+          aid: "PF3"
+
+  # If locked, clear and continue
+  - when_ascii_contains: "DFHAC2001"
+    do:
+      - press:
+          aid: "Clear"
+      - wait_ready:
+          timeout_ms: 2000

@@ -1,0 +1,15 @@
+{
+  "name": "logon_screen",
+  "timestamp": "2024-01-01T10:00:00",
+  "digest": "a1b2c3d4e5f67890123456789abcdef0",
+  "ascii": "Terminal   --                                                   LOGON REJECTED\n\n TTTTTTTTTTTT   KKKK  KKKKK     555555555555\n TT   TT   TT    KK    KK       55\n TT   TT   TT    KK   KK        55       TK5\n      TT         KK  KK         55       Update 4\n      TT         KK KK          55\n      TT         KKKK           55555555555\n      TT         KKKKK                    55\n      TT         KK  KK                   55\n      TT         KK   KK                  55\n      TT         KK    KK       55        55\n      TT         KK     KK        55555555\n\n\n\nUserid    ===> _______\nPassword  ===> _______\n\nNew Password ===>          (Case sensitive, if supported by your terminal)\n\nPF1/13==> Help    PF2/14==> n/a     PF3/15==> Logoff   PF4/16==> n/a\nPF5/17==> n/a     PF6/18==> n/a     PF7/19==> n/a      PF8/20==> n/a\nPF9/21==> n/a     PF10/22=> n/a     PF11/23=> n/a      PF12/24=> n/a",
+  "metadata": {
+    "rows": 24,
+    "cols": 80,
+    "cursor": [16, 15],
+    "fields": [
+      {"row": 16, "col": 15, "length": 7, "protected": false},
+      {"row": 17, "col": 15, "length": 7, "protected": false}
+    ]
+  }
+}

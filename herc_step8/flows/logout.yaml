@@ -1,0 +1,101 @@
+name: "Logout"
+steps:
+  - wait_ready:
+      timeout_ms: 5000
+
+  # First, exit KICKS if we're in it
+  - press:
+      aid: "Clear"
+
+  - wait_ready:
+      timeout_ms: 2000
+
+  # Send KICKS shutdown transaction
+  - fill_at:
+      row: 1
+      col: 1
+      value: "KSSF"
+
+  - press:
+      aid: "Enter"
+
+  - wait_change:
+      timeout_ms: 5000
+
+  # Should be back at TSO READY
+  - sleep_ms: 2000
+
+  # Now logoff from TSO
+  - press:
+      aid: "Clear"
+
+  - wait_ready:
+      timeout_ms: 2000
+
+  - fill_at:
+      row: 1
+      col: 1
+      value: "LOGOFF"
+
+  - press:
+      aid: "Enter"
+
+  - wait_change:
+      timeout_ms: 5000
+
+  # Verify we're back at logon screen
+  - assert_screen:
+      any:
+        - ascii_contains: "Logon ==>"
+        - ascii_contains: "TSO/E LOGON"
+        - ascii_contains: "ENTER USERID"
+
+  - golden:save:
+      name: "TSO_LOGON_RETURN"
+
+recovery:
+  # If KSSF not recognized, we're not in KICKS
+  - when_ascii_contains: "COMMAND NOT FOUND"
+    do:
+      - press:
+          aid: "Clear"
+      - wait_ready:
+          timeout_ms: 2000
+      - fill_at:
+          row: 1
+          col: 1
+          value: "LOGOFF"
+      - press:
+          aid: "Enter"
+
+  # Alternative exit from KICKS
+  - when_ascii_contains: "NOT RECOGNIZED"
+    do:
+      - press:
+          aid: "PF3"
+      - wait_change:
+          timeout_ms: 3000
+      - press:
+          aid: "PF3"
+      - wait_change:
+          timeout_ms: 3000
+
+  # Force exit with multiple PF3s
+  - when_ascii_contains: "KICKS"
+    do:
+      - press:
+          aid: "PF3"
+      - wait_change:
+          timeout_ms: 2000
+      - press:
+          aid: "PF3"
+      - wait_change:
+          timeout_ms: 2000
+      - press:
+          aid: "Clear"
+      - fill_at:
+          row: 1
+          col: 1
+          value: "LOGOFF"
+      - press:
+          aid: "Enter"

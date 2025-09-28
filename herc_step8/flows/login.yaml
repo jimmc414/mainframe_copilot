@@ -1,0 +1,72 @@
+name: "TSO Login"
+steps:
+  - wait_ready:
+      timeout_ms: 5000
+
+  - assert_screen:
+      any:
+        - ascii_contains: "Logon ==>"
+        - ascii_contains: "ENTER USERID"
+        - ascii_contains: "TSO/E LOGON"
+
+  - golden:save:
+      name: "TSO_LOGON_SCREEN"
+
+  # Enter username at logon prompt
+  - fill_by_label:
+      label: "Logon ==>"
+      offset: 1
+      value_env: "TSO_USER"
+
+  - press:
+      aid: "Enter"
+
+  - wait_change:
+      timeout_ms: 5000
+
+  # Check if password prompt appeared
+  - assert_screen:
+      any:
+        - ascii_contains: "ENTER PASSWORD"
+        - ascii_contains: "ENTER CURRENT PASSWORD"
+
+  # Enter password
+  - fill_at:
+      row: 2
+      col: 1
+      value_env: "TSO_PASS"
+      secret: true
+
+  - press:
+      aid: "Enter"
+
+  - wait_change:
+      timeout_ms: 10000
+
+  # Verify successful login
+  - assert_not_screen:
+      ascii_contains: "LOGON REJECTED"
+
+  # Should see READY prompt
+  - assert_screen:
+      any:
+        - ascii_contains: "READY"
+        - ascii_contains: "***"
+
+recovery:
+  - when_ascii_contains: "IKJ56425I"  # USERID IN USE
+    do:
+      - press:
+          aid: "Clear"
+      - wait_ready:
+          timeout_ms: 2000
+
+  - when_ascii_contains: "IKJ56700A REENTER"  # PASSWORD ERROR
+    do:
+      - fill_at:
+          row: 2
+          col: 1
+          value_env: "TSO_PASS"
+          secret: true
+      - press:
+          aid: "Enter"

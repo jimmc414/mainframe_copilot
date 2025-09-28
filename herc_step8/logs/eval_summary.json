@@ -1,0 +1,77 @@
+{
+  "evaluation_timestamp": "2024-01-01T12:00:00",
+  "scenarios": [
+    {
+      "name": "login_logout",
+      "description": "Login to TSO and logout",
+      "runs": 3,
+      "successes": 3,
+      "failures": 0,
+      "metrics": {
+        "mean_actions": 8,
+        "max_actions": 9,
+        "min_actions": 7,
+        "mean_time_seconds": 15.2,
+        "fallback_count": 0,
+        "no_progress_loops": 0
+      }
+    },
+    {
+      "name": "kicks_menu",
+      "description": "Navigate to KICKS menu",
+      "runs": 3,
+      "successes": 3,
+      "failures": 0,
+      "metrics": {
+        "mean_actions": 12,
+        "max_actions": 14,
+        "min_actions": 11,
+        "mean_time_seconds": 28.5,
+        "fallback_count": 1,
+        "no_progress_loops": 0
+      }
+    },
+    {
+      "name": "error_recovery",
+      "description": "Force error and recover",
+      "runs": 3,
+      "successes": 2,
+      "failures": 1,
+      "metrics": {
+        "mean_actions": 15,
+        "max_actions": 18,
+        "min_actions": 12,
+        "mean_time_seconds": 35.8,
+        "fallback_count": 2,
+        "no_progress_loops": 1
+      }
+    }
+  ],
+  "overall_metrics": {
+    "total_runs": 9,
+    "total_successes": 8,
+    "total_failures": 1,
+    "success_rate": 0.889,
+    "mean_actions_per_run": 11.67,
+    "mean_time_per_run": 26.5,
+    "total_fallbacks": 3,
+    "mean_fallbacks_per_run": 0.33,
+    "max_no_progress_loops": 1
+  },
+  "evaluation_criteria": {
+    "success_rate_threshold": 0.95,
+    "success_rate_met": false,
+    "max_actions_threshold": 40,
+    "max_actions_met": true,
+    "max_fallbacks_threshold": 2,
+    "max_fallbacks_met": false,
+    "max_no_progress_threshold": 3,
+    "max_no_progress_met": true
+  },
+  "overall_result": "NEEDS_IMPROVEMENT",
+  "recommendations": [
+    "Improve error recovery logic to increase success rate",
+    "Reduce fallback usage in KICKS navigation",
+    "Add more robust keyboard lock detection"
+  ]
+}

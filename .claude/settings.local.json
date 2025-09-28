@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsb_release:*)",
+      "Bash(apt-cache:*)",
+      "WebSearch",
+      "Read(//home/jim/herc/**)",
+      "Bash(ss:*)",
+      "WebFetch(domain:kicksfortso.com)",
+      "WebFetch(domain:www.kicksfortso.com)",
+      "WebFetch(domain:www.jaymoseley.com)",
+      "Bash(dpkg:*)",
+      "Bash(c3270:*)",
+      "Bash(s3270:*)",
+      "Bash(apt list:*)",
+      "Bash(pip3:*)",
+      "Bash(echo $TSO_USER $TSO_PASS)",
+      "Bash(grep:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

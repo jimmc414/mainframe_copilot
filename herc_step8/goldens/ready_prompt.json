@@ -1,0 +1,13 @@
+{
+  "name": "ready_prompt",
+  "timestamp": "2024-01-01T10:00:05",
+  "digest": "e5f6789012345678901234567890abcd",
+  "ascii": "ICH70001I HERC02   LAST ACCESS AT 10:00:00 ON MONDAY, JANUARY 1, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nREADY\n_",
+  "metadata": {
+    "rows": 24,
+    "cols": 80,
+    "cursor": [22, 1],
+    "status": "READY",
+    "keyboard_locked": false
+  }
+}

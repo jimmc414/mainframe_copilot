@@ -1,0 +1,16 @@
+[Unit]
+Description=Hercules Automation Watchdog
+After=tn3270-bridge.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/jim/herc
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/python3 /home/jim/herc/tools/watchdog.py
+Restart=on-failure
+RestartSec=30
+StandardOutput=append:/home/jim/herc/logs/watchdog.log
+StandardError=append:/home/jim/herc/logs/watchdog.log
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,20 @@
+name: "End to End Flow"
+description: "Complete flow from TSO login through KICKS demo to logout"
+
+imports:
+  - login.yaml
+  - kicks_start.yaml
+  - kicks_demo.yaml
+  - logout.yaml
+
+# Additional validation at the end
+steps:
+  - sleep_ms: 1000
+
+  - assert_screen:
+      any:
+        - ascii_contains: "Logon ==>"
+        - ascii_contains: "TSO/E LOGON"
+
+  - golden:save:
+      name: "END_TO_END_COMPLETE"

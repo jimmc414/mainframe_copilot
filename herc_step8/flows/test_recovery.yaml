@@ -1,0 +1,31 @@
+name: "Test Recovery"
+description: "Demonstrates recovery from unexpected screens"
+
+steps:
+  - wait_ready:
+      timeout_ms: 5000
+
+  # Try to assert a screen that doesn't exist
+  - assert_screen:
+      ascii_contains: "THIS_WILL_NOT_MATCH"
+
+  # This step would be skipped due to failure above
+  - press:
+      aid: "Enter"
+
+recovery:
+  # When any screen appears, try PF3
+  - when_ascii_contains: ""
+    do:
+      - press:
+          aid: "PF3"
+      - wait_change:
+          timeout_ms: 3000
+
+  # If still stuck, try Clear
+  - when_ascii_contains: ""
+    do:
+      - press:
+          aid: "Clear"
+      - wait_ready:
+          timeout_ms: 2000

@@ -1,0 +1,16 @@
+[Unit]
+Description=TN3270 Bridge API Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/jim/herc/bridge
+Environment="PATH=/home/jim/herc/bridge/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/jim/herc/bridge/venv/bin/python -m tn3270_bridge.api_enhanced
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/jim/herc/logs/bridge.log
+StandardError=append:/home/jim/herc/logs/bridge.log
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,74 @@
+name: "Start KICKS"
+steps:
+  - wait_ready:
+      timeout_ms: 5000
+
+  # Verify we're at TSO READY
+  - assert_screen:
+      ascii_contains: "READY"
+
+  - golden:save:
+      name: "TSO_READY_SCREEN"
+
+  # Clear any previous input
+  - press:
+      aid: "Clear"
+
+  - wait_ready:
+      timeout_ms: 2000
+
+  # Start KICKS - adjust command based on installation
+  # Option 1: If KICKS is a TSO command
+  - fill_at:
+      row: 1
+      col: 1
+      value: "KICKS"
+
+  - press:
+      aid: "Enter"
+
+  - wait_change:
+      timeout_ms: 10000
+
+  # Check if we got KICKS screen
+  - assert_screen:
+      any:
+        - ascii_contains: "KICKS"
+        - ascii_contains: "KSGM"
+        - ascii_contains: "K I C K S"
+
+  - golden:save:
+      name: "KICKS_INITIAL_SCREEN"
+
+recovery:
+  # If KICKS command not found, try CLIST
+  - when_ascii_contains: "COMMAND NOT FOUND"
+    do:
+      - press:
+          aid: "Clear"
+      - wait_ready:
+          timeout_ms: 2000
+      - fill_at:
+          row: 1
+          col: 1
+          value: "EXEC 'HERC02.KICKS.V1R5M0.CLIST(KICKS)'"
+      - press:
+          aid: "Enter"
+      - wait_change:
+          timeout_ms: 10000
+
+  # Alternative for HERC01 user
+  - when_ascii_contains: "NOT FOUND"
+    do:
+      - press:
+          aid: "Clear"
+      - wait_ready:
+          timeout_ms: 2000
+      - fill_at:
+          row: 1
+          col: 1
+          value: "EXEC 'HERC01.KICKS.V1R5M0.CLIST(KICKS)'"
+      - press:
+          aid: "Enter"
+      - wait_change:
+          timeout_ms: 10000

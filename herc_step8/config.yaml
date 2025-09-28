@@ -1,0 +1,167 @@
+# Mainframe Automation System Configuration
+# Version: 1.0.0
+# Security: LOCALHOST ONLY - All services bind to 127.0.0.1
+
+# System settings
+system:
+  name: "Mainframe Automation Demo"
+  version: "1.0.0"
+  environment: "demo"  # demo, test, production
+
+# Network settings - LOCALHOST ONLY
+network:
+  bridge_host: "127.0.0.1"
+  bridge_port: 8080
+  mainframe_host: "127.0.0.1"
+  mainframe_port: 3270
+
+# Paths
+paths:
+  base: "~/herc"
+  logs: "~/herc/logs"
+  flows: "~/herc/flows"
+  goldens: "~/herc/goldens"
+  commands: "~/herc/ai/commands"
+  traces: "~/herc/logs/ai/trace"
+
+# Service configuration
+services:
+  hercules:
+    enabled: true
+    config_file: "~/herc/conf/tk5.cnf"
+    startup_wait: 30  # seconds
+    console_port: 3270
+
+  tn3270_bridge:
+    enabled: true
+    api_module: "tn3270_bridge.api_enhanced"
+    health_check_interval: 10  # seconds
+    session_timeout: 300  # seconds (5 minutes)
+
+  agent:
+    enabled: true
+    interactive: false
+    command_queue_poll: 0.5  # seconds
+
+  watchdog:
+    enabled: false  # Set to true for production
+    check_interval: 10  # seconds
+    max_failures: 3
+    restart_delay: 30  # seconds
+
+# Security policies
+security:
+  localhost_only: true  # MUST be true
+  credential_redaction: true
+  action_allowlist:
+    - "Wait"
+    - "Ascii"
+    - "ReadBuffer"
+    - "Query"
+    - "MoveCursor"
+    - "String"
+    - "Enter"
+    - "PF"
+    - "PA"
+    - "Clear"
+    - "Connect(127.0.0.1"
+    - "Disconnect"
+
+# Operational limits
+limits:
+  max_steps_per_goal: 40
+  max_time_per_goal: 600  # seconds (10 minutes)
+  max_retries: 3
+  retry_backoff: [2, 4, 8]  # seconds
+  keyboard_lock_timeout: 30  # seconds
+  action_timeout: 30  # seconds
+  prompt_budget: 4000  # tokens
+  screen_max_rows: 24
+  screen_max_cols: 80
+
+# Logging configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "jsonl"  # jsonl or text
+  rotation:
+    enabled: true
+    max_size_mb: 100
+    max_days: 7
+  trace:
+    enabled: false  # Set to true for debugging
+    max_traces: 1000
+  metrics:
+    enabled: true
+    update_interval: 60  # seconds
+
+# LLM configuration
+llm:
+  provider: "claude"  # claude, mock
+  model: "default"
+  temperature: 0.3
+  max_tokens: 4000
+  system_prompt_file: "~/herc/ai/prompts/system_prompt.txt"
+  developer_prompt_file: "~/herc/ai/prompts/developer_prompt.txt"
+
+# Execution modes
+modes:
+  default: "batch"
+  available:
+    - "interactive"  # Human in the loop
+    - "batch"        # Automated execution
+    - "dry-run"      # Planning only
+    - "confirm"      # Require approval
+
+# Default credentials (DEMO ONLY)
+credentials:
+  default_user: "HERC02"
+  default_password: "CUL8TR"
+  # NOTE: Never store production credentials here
+
+# Demo scenarios
+scenarios:
+  - name: "login_logout"
+    description: "Login to TSO and logout"
+    flow: "end_to_end.yaml"
+    max_time: 120
+
+  - name: "kicks_menu"
+    description: "Navigate to KICKS menu"
+    flow: "kicks_start.yaml"
+    max_time: 180
+
+  - name: "kicks_demo"
+    description: "Run KICKS demo transaction"
+    flow: "kicks_demo.yaml"
+    max_time: 240
+
+# Evaluation criteria
+evaluation:
+  success_rate_threshold: 0.95  # 95%
+  max_actions_threshold: 40
+  max_fallbacks_threshold: 2
+  max_no_progress_loops: 3
+
+# Recovery strategies
+recovery:
+  keyboard_lock:
+    - action: "PF3"
+      wait: 2
+    - action: "Clear"
+      wait: 2
+    - action: "reset_session"
+      wait: 5
+
+  connection_lost:
+    - action: "reconnect"
+      wait: 5
+    - action: "restart_bridge"
+      wait: 10
+
+# Feature flags
+features:
+  auto_reconnect: true
+  keyboard_recovery: true
+  session_preservation: true
+  golden_validation: false
+  trace_mode: false
