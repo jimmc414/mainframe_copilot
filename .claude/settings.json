@@ -1,0 +1,40 @@
+{
+  "defaultMode": "acceptEdits",
+  "permissions": {
+    "allow": [
+      "Bash(curl*127.0.0.1:8080*)",
+      "Bash(curl*127.0.0.1:8038*)",
+      "Bash(curl*127.0.0.1:3270*)",
+      "Bash(curl*localhost:8080*)",
+      "Bash(curl*localhost:8038*)",
+      "Bash(curl*localhost:3270*)",
+      "Bash(python3*)",
+      "Bash(grep*)",
+      "Bash(echo*)",
+      "Bash(sleep*)",
+      "Bash(for*)",
+      "Bash(timeout*)",
+      "Bash(cd*)",
+      "Bash(ls*)",
+      "Bash(cat*)",
+      "Bash(ps*)",
+      "Bash(kill*)",
+      "Bash(pkill*)",
+      "Bash(find*)",
+      "Write(*)",
+      "Edit(*)",
+      "Read(*)",
+      "MultiEdit(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ],
+    "deny": [
+      "Bash(wget*)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~/*)",
+      "Bash(dd if=/dev/zero*)",
+      "Bash(dd if=/dev/random*)"
+    ]
+  },
+  "notes": "This configuration explicitly allows curl only to specific localhost ports (8080, 8038, 3270) used by the mainframe system. All other curl commands will require approval."
+}
