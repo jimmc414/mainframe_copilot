@@ -158,7 +158,12 @@ class FlowRunner:
 
         response = requests.post(
             f"{self.api_url}/fill_by_label",
-            json={"label": label, "offset": offset, "text": value}
+            json={
+                "label": label,
+                "offset": offset,
+                "value": value,    # New API expects 'value'
+                "text": value      # Keep 'text' for backward compatibility with legacy API
+            }
         )
 
         return response.status_code == 200

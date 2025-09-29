@@ -259,6 +259,13 @@ echo "Goal: $GOAL"
 echo "Config: $HERC_HOME/config.yaml"
 echo
 
+# Export TSO credentials (can be overridden by environment)
+if [ -z "$TSO_USER" ]; then
+    export TSO_USER="HERC02"
+    export TSO_PASS="CUL8TR"
+    echo "Using default TSO credentials: TSO_USER=$TSO_USER"
+fi
+
 # Create log directories
 mkdir -p "$HERC_HOME/logs/ai/trace"
 mkdir -p "$HERC_HOME/logs/archive"

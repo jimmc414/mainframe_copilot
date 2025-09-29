@@ -88,11 +88,15 @@ class FlowRunner:
         # Create instance of real flow runner
         self.runner = RealFlowRunner(host=bridge.base_url.replace("http://", ""))
 
-    def run(self, flow_path: str) -> bool:
+    def run(self, flow_path: str, env: Dict[str, str] = None) -> bool:
         """Run flow using real flow runner"""
         try:
-            # Use the real flow runner's run method
-            result = self.runner.run(flow_path)
+            from pathlib import Path
+            # Convert string path to Path object as expected by real runner
+            flow_path_obj = Path(flow_path)
+
+            # Use the real flow runner's run method with env parameter
+            result = self.runner.run(flow_path_obj, env=env)
             return result.get("success", False) if isinstance(result, dict) else result
         except Exception as e:
             print(f"Flow execution error: {e}")

@@ -10,6 +10,8 @@ from typing import Optional, Dict, Any, Callable, List
 import logging
 from datetime import datetime
 import sys
+import yaml
+import os
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -152,6 +154,10 @@ class MainframeAgent:
         self.system_prompt = self._load_prompt("system_prompt.txt")
         self.tools_manifest = self._load_tools()
 
+        # Load configuration and TSO credentials
+        self.config = self._load_config()
+        self.tso_credentials = self._get_tso_credentials()
+
     def _setup_logging(self) -> logging.Logger:
         """Configure logging"""
         self.log_dir.mkdir(parents=True, exist_ok=True)
@@ -190,6 +196,36 @@ class MainframeAgent:
             with open(tools_file) as f:
                 return json.load(f)
         return []
+
+    def _load_config(self) -> Dict[str, Any]:
+        """Load configuration from config.yaml"""
+        config_file = Path("~/herc/config.yaml").expanduser()
+        if config_file.exists():
+            with open(config_file) as f:
+                return yaml.safe_load(f)
+        return {}
+
+    def _get_tso_credentials(self) -> Dict[str, str]:
+        """Get TSO credentials from config or environment"""
+        credentials = {}
+
+        # First try environment variables
+        credentials['TSO_USER'] = os.environ.get('TSO_USER', '')
+        credentials['TSO_PASS'] = os.environ.get('TSO_PASS', '')
+
+        # If not in environment, get from config
+        if not credentials['TSO_USER'] and self.config:
+            tso_config = self.config.get('tso', {})
+            credentials['TSO_USER'] = tso_config.get('default_user', 'HERC02')
+            credentials['TSO_PASS'] = tso_config.get('default_password', 'CUL8TR')
+
+        # If still not found, use defaults
+        if not credentials['TSO_USER']:
+            credentials['TSO_USER'] = 'HERC02'
+            credentials['TSO_PASS'] = 'CUL8TR'
+
+        self.logger.info(f"Using TSO user: {credentials['TSO_USER']}")
+        return credentials
 
     def _start_monitor(self):
         """Start command queue monitor for interactive mode"""
@@ -325,7 +361,8 @@ class MainframeAgent:
             return {"error": f"Flow not found: {flow_name}"}
 
         try:
-            result = self.flow_runner.run(str(flow_path))
+            # Pass TSO credentials to flow runner
+            result = self.flow_runner.run(str(flow_path), env=self.tso_credentials)
             return {"status": "success" if result else "failed"}
         except Exception as e:
             return {"error": str(e)}
