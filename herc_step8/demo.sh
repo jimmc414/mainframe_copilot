@@ -11,8 +11,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Base directory
-HERC_HOME="${HOME}/herc"
+# Detect base directory - support running from herc_step8 directly
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# If we're in herc_step8, use it as HERC_HOME
+if [ -f "${SCRIPT_DIR}/config.yaml" ] && [ -d "${SCRIPT_DIR}/ai" ] && [ -d "${SCRIPT_DIR}/bridge" ]; then
+    echo "Running from herc_step8 directory"
+    HERC_HOME="${SCRIPT_DIR}"
+else
+    # Fallback to ~/herc
+    HERC_HOME="${HOME}/herc"
+    if [ ! -d "$HERC_HOME" ]; then
+        echo -e "${RED}Error: $HERC_HOME not found. Please run setup first.${NC}"
+        exit 1
+    fi
+fi
+
 cd "$HERC_HOME"
 
 # Cleanup function for graceful shutdown
@@ -155,9 +169,11 @@ start_bridge() {
         python3 -m venv venv
         source venv/bin/activate
         echo "Installing bridge dependencies..."
-        pip install --quiet fastapi uvicorn[standard] pyyaml psutil
+        pip install --quiet fastapi uvicorn[standard] pyyaml psutil requests
     else
         source venv/bin/activate
+        # Ensure all dependencies are installed
+        pip install --quiet --upgrade fastapi uvicorn[standard] pyyaml psutil requests
     fi
 
     # Always use enhanced API for health endpoints
@@ -208,6 +224,13 @@ start_agent() {
     echo -e "${YELLOW}Starting AI Agent...${NC}"
 
     cd "$HERC_HOME/ai"
+
+    # Ensure Python dependencies are installed for AI agent
+    echo "Checking AI agent dependencies..."
+    python3 -c "import yaml, requests" 2>/dev/null || {
+        echo "Installing AI agent Python dependencies..."
+        pip install --quiet pyyaml requests psutil
+    }
 
     case "$MODE" in
         "interactive")

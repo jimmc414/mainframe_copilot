@@ -10,7 +10,21 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-HERC_HOME="${HOME}/herc"
+# Detect base directory - support both repo structure and runtime structure
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Check if we're in the repository structure
+if [ -d "${SCRIPT_DIR}/herc_step8" ]; then
+    HERC_HOME="${SCRIPT_DIR}/herc_step8"
+elif [ -d "${HOME}/herc" ]; then
+    HERC_HOME="${HOME}/herc"
+elif [ -d "${SCRIPT_DIR}/ai" ] && [ -d "${SCRIPT_DIR}/bridge" ]; then
+    # We're already in a proper structure
+    HERC_HOME="${SCRIPT_DIR}"
+else
+    # Default to ~/herc
+    HERC_HOME="${HOME}/herc"
+fi
 
 print_header() {
     echo -e "${BLUE}============================================${NC}"

@@ -192,15 +192,36 @@ async def connect(request: ConnectRequest):
     if not request.host.startswith("127.0.0.1"):
         raise HTTPException(status_code=403, detail="Only localhost connections allowed")
 
+    # Check if already connected
+    try:
+        if session.connected:
+            # Already connected, just return current screen
+            session_metadata["last_action"] = "connect"
+            session_metadata["last_action_time"] = datetime.now().isoformat()
+            session_metadata["action_count"] += 1
+
+            screen = session.snapshot()
+            return {
+                "status": "connected",
+                "message": f"Already connected to {request.host}",
+                "screen": screen
+            }
+    except:
+        pass  # Session might not have connected attribute
+
     max_retries = 3
     retry_delays = [2, 4, 8]
 
     for attempt in range(max_retries):
         try:
-            result = session._send_command(f"Connect({request.host})")
+            # Use execute method instead of _send_command
+            result = session.execute(f"Connect({request.host})")
 
-            # Wait for connection
-            session._send_command("Wait(InputField)")
+            # Wait for connection - but with shorter timeout
+            session.execute("Wait(3,InputField)")
+
+            # Mark as connected
+            session.connected = True
 
             # Update metadata
             session_metadata["last_action"] = "connect"

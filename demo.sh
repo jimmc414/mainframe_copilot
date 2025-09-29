@@ -11,8 +11,32 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Base directory
-HERC_HOME="${HOME}/herc"
+# Detect base directory - support both repo structure and runtime structure
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Check if we're in the repository structure
+if [ -d "${SCRIPT_DIR}/herc_step8" ]; then
+    echo "Detected repository structure, using herc_step8 as base"
+    HERC_HOME="${SCRIPT_DIR}/herc_step8"
+elif [ -d "${HOME}/herc" ]; then
+    echo "Using existing runtime directory: ~/herc"
+    HERC_HOME="${HOME}/herc"
+else
+    echo "Creating runtime directory: ~/herc"
+    # Setup runtime directory from repository
+    if [ -d "${SCRIPT_DIR}/herc_step8" ]; then
+        cp -r "${SCRIPT_DIR}/herc_step8" "${HOME}/herc"
+    elif [ -d "${SCRIPT_DIR}/ai" ] && [ -d "${SCRIPT_DIR}/bridge" ]; then
+        # We're already in a proper structure
+        HERC_HOME="${SCRIPT_DIR}"
+    else
+        echo -e "${RED}Error: Cannot find required directories (ai, bridge, etc.)${NC}"
+        echo "Please ensure you're running from the cloned repository."
+        exit 1
+    fi
+    HERC_HOME="${HOME}/herc"
+fi
+
 cd "$HERC_HOME"
 
 # Cleanup function for graceful shutdown
@@ -155,9 +179,11 @@ start_bridge() {
         python3 -m venv venv
         source venv/bin/activate
         echo "Installing bridge dependencies..."
-        pip install --quiet fastapi uvicorn[standard] pyyaml psutil
+        pip install --quiet fastapi uvicorn[standard] pyyaml psutil requests
     else
         source venv/bin/activate
+        # Ensure all dependencies are installed
+        pip install --quiet --upgrade fastapi uvicorn[standard] pyyaml psutil requests
     fi
 
     # Always use enhanced API for health endpoints
@@ -208,6 +234,13 @@ start_agent() {
     echo -e "${YELLOW}Starting AI Agent...${NC}"
 
     cd "$HERC_HOME/ai"
+
+    # Ensure Python dependencies are installed for AI agent
+    echo "Checking AI agent dependencies..."
+    python3 -c "import yaml, requests" 2>/dev/null || {
+        echo "Installing AI agent Python dependencies..."
+        pip install --quiet pyyaml requests psutil
+    }
 
     case "$MODE" in
         "interactive")

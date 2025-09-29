@@ -10,7 +10,16 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-HERC_HOME="${HOME}/herc"
+# Detect base directory - support running from herc_step8 directly
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# If we're in herc_step8, use it as HERC_HOME
+if [ -f "${SCRIPT_DIR}/config.yaml" ] && [ -d "${SCRIPT_DIR}/ai" ] && [ -d "${SCRIPT_DIR}/bridge" ]; then
+    HERC_HOME="${SCRIPT_DIR}"
+else
+    # Fallback to ~/herc
+    HERC_HOME="${HOME}/herc"
+fi
 
 print_header() {
     echo -e "${BLUE}============================================${NC}"

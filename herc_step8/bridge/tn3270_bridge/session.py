@@ -251,6 +251,21 @@ class S3270Session:
 
         return False
 
+    def execute(self, command: str, timeout: float = 5.0) -> List[str]:
+        """Execute an s3270 command and return response
+
+        This is a public wrapper for _send_command to maintain compatibility
+        with the API layer that expects an execute method.
+
+        Args:
+            command: s3270 command to execute
+            timeout: timeout in seconds (default: 5.0)
+
+        Returns:
+            List of response lines from s3270
+        """
+        return self._send_command(command, timeout)
+
     def snapshot(self) -> Dict[str, Any]:
         """Capture complete screen state"""
         # Save current state
