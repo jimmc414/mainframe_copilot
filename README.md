@@ -25,14 +25,18 @@ The project uses a split directory structure for maintainability:
 **Repository Structure (in Git):**
 ```
 /mnt/c/python/mainframe_copilot/    # Windows-accessible via WSL2
-├── mainframe_copilot/               # Python package (~20MB total)
+├── herc_step8/                     # Main components directory
 │   ├── ai/                         # AI agent code
 │   ├── bridge/                     # TN3270 bridge API
 │   ├── flows/                      # YAML automation workflows
-│   └── tools/                      # Utilities and helpers
-├── scripts/                         # Setup and startup scripts
-├── docs/                           # Documentation
-└── herc_step8/                     # Current working version
+│   ├── tools/                      # Utilities and helpers
+│   ├── demo.sh                     # Component demo script
+│   └── config.yaml                 # Configuration
+├── scripts/                         # Setup and download scripts
+│   └── download_mvs.sh             # MVS TK5 downloader
+├── demo.sh                         # Main startup script
+├── stop.sh                         # Shutdown script
+└── README.md                       # This file
 ```
 
 **Runtime Structure (created during setup):**
@@ -52,9 +56,9 @@ The project uses a split directory structure for maintainability:
 
 ### Setup Process
 1. **Clone repository** - Gets automation code (~20MB)
-2. **Run setup script** - Installs Python dependencies
-3. **Download MVS separately** - Gets MVS TK5 files (1.1GB)
-4. **Link directories** - Creates runtime structure in ~/herc
+2. **Run demo.sh** - Automatically sets up ~/herc runtime directory
+3. **Download MVS** - Script prompts to download TK5 files (1.1GB) if missing
+4. **Start services** - Launches all components automatically
 
 ### Why This Architecture
 - **Git-friendly**: Only source code in repository, no large binaries
@@ -94,13 +98,17 @@ sudo apt update && sudo apt install -y \
 
 ### Installation
 ```bash
-# 1. Clone/extract the project
-cd ~
-git clone [repository] herc  # or extract archive
+# 1. Clone the repository
+git clone [repository] mainframe_copilot
+cd mainframe_copilot
 
-# 2. Run one-command setup
-cd ~/herc
+# 2. Run the demo script (automatically sets up ~/herc runtime)
 ./demo.sh
+
+# The script will:
+# - Set up runtime directory at ~/herc
+# - Prompt to download MVS files if missing (1.1GB)
+# - Start all services automatically
 ```
 
 That's it! The system will:

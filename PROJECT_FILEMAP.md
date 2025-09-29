@@ -73,14 +73,13 @@
 │   │   └── ready_prompt.json      # Ready prompt golden
 │   │
 │   ├── 📄 Core Files
-│   │   ├── demo.sh                # One-command startup script
+│   │   ├── demo.sh                # Component startup script (uses python3)
 │   │   ├── stop.sh                # Graceful shutdown script
 │   │   ├── config.yaml            # Central configuration
 │   │   ├── demo.tmux              # tmux layout configuration
-│   │   ├── README.md              # Project README
+│   │   ├── README.md              # Component README
 │   │   ├── PACKAGE_CONTENTS.md    # Package inventory
-│   │   ├── CRITICAL_FIXES.md      # First round of fixes
-│   │   └── FIXES_APPLIED.md       # Fix tracking document
+│   │   └── setup_dependencies.sh  # Dependency installer
 │   │
 │   └── 📁 mvs38j/ (NOT IN GIT)    # MVS System Files (1.1GB)
 │       └── mvs-tk5/               # Downloaded separately
@@ -100,11 +99,13 @@
 │
 ├── 📄 Root Files
 │   ├── README.md                  # Main project README
+│   ├── demo.sh                    # Main startup script (provisions ~/herc)
+│   ├── stop.sh                    # Main shutdown script
 │   ├── setup.py                   # Python package installer
 │   ├── requirements.txt           # Python requirements
+│   ├── FUNCTIONALITY_REVIEW.md    # System test results
 │   ├── MVS_SETUP.md              # MVS installation guide
-│   ├── CODE_REVIEW_FIXES.md      # Code review response
-│   ├── CRITICAL_FIXES_ROUND2.md  # Second round fixes
+│   ├── KICKS_INSTALLATION_STATUS.md # KICKS setup tracker
 │   └── PROJECT_FILEMAP.md        # This file
 │
 └── 📁 Archives
@@ -116,20 +117,20 @@
 ## Runtime Directory (Created During Setup)
 
 ```
-~/herc/                            # WSL2 runtime location
+~/herc/                            # WSL2 runtime location (auto-created by demo.sh)
 │
-├── 📁 mvs38j/                     # MVS System (downloaded)
+├── 📁 mvs38j/                     # MVS System (downloaded via script)
 │   └── mvs-tk5/                   # TK5 distribution
 │       ├── conf/tk5.cnf          # Main config
 │       ├── dasd/*.3350           # Disk images
 │       └── hercules/             # Emulator
 │
-├── 📁 ai/ → (symlink)             # Links to herc_step8/ai
-├── 📁 bridge/ → (symlink)         # Links to herc_step8/bridge
-├── 📁 flows/ → (symlink)          # Links to herc_step8/flows
-├── 📁 tools/ → (symlink)          # Links to herc_step8/tools
-├── 📁 scripts/ → (symlink)        # Links to herc_step8/scripts
-├── 📁 docs/ → (symlink)           # Links to herc_step8/docs
+├── 📁 ai/                         # Copied from herc_step8/ai
+├── 📁 bridge/                     # Copied from herc_step8/bridge
+├── 📁 flows/                      # Copied from herc_step8/flows
+├── 📁 tools/                      # Copied from herc_step8/tools
+├── 📁 scripts/                    # Copied from herc_step8/scripts
+├── 📁 docs/                       # Copied from herc_step8/docs
 │
 ├── 📁 logs/                       # Runtime logs (created)
 │   ├── hercules.log              # Hercules emulator log

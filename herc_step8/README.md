@@ -42,13 +42,16 @@ sudo apt update && sudo apt install -y \
 
 ### Installation
 ```bash
-# 1. Clone/extract the project
-cd ~
-git clone [repository] herc  # or extract archive
-
-# 2. Run one-command setup
-cd ~/herc
+# 1. This directory is part of the mainframe_copilot repository
+# 2. From the repository root, run:
+cd /mnt/c/python/mainframe_copilot
 ./demo.sh
+
+# The demo.sh script will:
+# - Set up runtime directory at ~/herc
+# - Copy this directory's contents to ~/herc
+# - Prompt to download MVS files if needed
+# - Start all services with python3
 ```
 
 That's it! The system will:
@@ -156,24 +159,24 @@ curl -X POST http://127.0.0.1:8080/press \
 ```
 
 ## Directory Structure
+
+### This Directory (herc_step8)
 ```
-~/herc/
+herc_step8/               # Component directory in repository
 ├── config.yaml           # Central configuration
-├── demo.sh              # Start script
+├── demo.sh              # Component start script (uses python3)
 ├── stop.sh              # Shutdown script
 ├── README.md            # This file
-├── mvs38j/              # Hercules & MVS system
-├── bridge/              # TN3270 Bridge API
+├── bridge/              # TN3270 Bridge API (fixed UTF-8 handling)
 ├── ai/                  # AI Agent & controllers
 ├── flows/               # Automation workflows
 ├── tools/               # Utilities (watchdog, replay)
-├── logs/                # All system logs
-├── goldens/             # Reference screens
-└── docs/                # Full documentation
-    ├── RUNBOOK.md       # Operational guide
-    ├── POLICY_ADDENDUM.md  # Security policies
-    └── POLICY_MAP.md    # Policy enforcement
+├── docs/                # Full documentation
+└── scripts/             # Setup scripts
 ```
+
+### Runtime Directory (~/herc)
+Created automatically by the main demo.sh script with all components copied from herc_step8.
 
 ## Key Features
 
