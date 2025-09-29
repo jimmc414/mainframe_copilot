@@ -1,0 +1,21 @@
+# Preserve Unix line endings for shell scripts and expect files
+*.sh text eol=lf
+*.expect text eol=lf
+*.py text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Mark these as text files
+*.md text
+*.txt text
+*.json text
+*.cnf text
+*.log text
+
+# Binary files
+*.gz binary
+*.zip binary
+*.tar binary
+*.png binary
+*.jpg binary
+*.jpeg binary

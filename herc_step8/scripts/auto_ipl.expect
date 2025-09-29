@@ -18,8 +18,8 @@ expect {
     }
 }
 
-# Send IPL command to boot from device 00c
-send "ipl 00c\r"
+# Send IPL command to boot from device 0390 (actual TK5 boot device)
+send "ipl 0390\r"
 
 # Wait for first operator prompt
 expect {

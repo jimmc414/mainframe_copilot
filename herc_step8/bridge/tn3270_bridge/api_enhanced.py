@@ -113,7 +113,7 @@ async def health_check():
         if session and session.process and session.process.poll() is None:
             # Try to get status
             try:
-                session.execute("Query(ConnectionState)")
+                session._send_command("Query(ConnectionState)")
                 connected = True
             except:
                 connected = False
@@ -154,7 +154,7 @@ async def reset_session():
         # Disconnect if connected
         if session:
             try:
-                session.execute("Disconnect()")
+                session._send_command("Disconnect()")
             except:
                 pass
 
@@ -165,8 +165,8 @@ async def reset_session():
             session.start()
 
             # Reconnect
-            result = session.execute("Connect(127.0.0.1:3270)")
-            session.execute("Wait(InputField)")
+            result = session._send_command("Connect(127.0.0.1:3270)")
+            session._send_command("Wait(InputField)")
 
             # Update metadata
             session_metadata["reconnect_count"] += 1
@@ -197,10 +197,10 @@ async def connect(request: ConnectRequest):
 
     for attempt in range(max_retries):
         try:
-            result = session.execute(f"Connect({request.host})")
+            result = session._send_command(f"Connect({request.host})")
 
             # Wait for connection
-            session.execute("Wait(InputField)")
+            session._send_command("Wait(InputField)")
 
             # Update metadata
             session_metadata["last_action"] = "connect"
@@ -274,7 +274,7 @@ async def execute_actions(request: ActionsRequest):
     results = []
     for action in request.actions:
         try:
-            result = session.execute(action)
+            result = session._send_command(action)
             results.append({"action": action, "result": result, "status": "ok"})
 
             # Update metadata
@@ -290,9 +290,9 @@ async def execute_actions(request: ActionsRequest):
             if "keyboard locked" in str(e).lower():
                 # Try recovery
                 try:
-                    session.execute("Clear()")
+                    session._send_command("Clear()")
                     time.sleep(0.5)
-                    session.execute("Reset()")
+                    session._send_command("Reset()")
                 except:
                     pass
 
@@ -309,7 +309,7 @@ async def fill(request: FillRequest):
 
     try:
         # Wait for keyboard unlock first
-        session.execute("Wait(InputField)")
+        session._send_command("Wait(InputField)")
 
         # Move cursor and fill
         result = session.fill_at(request.row, request.col, request.text, request.enter)
@@ -327,7 +327,7 @@ async def fill(request: FillRequest):
         # Try keyboard recovery
         if "keyboard" in str(e).lower():
             try:
-                session.execute("Clear()")
+                session._send_command("Clear()")
                 time.sleep(0.5)
                 return {"status": "recovered", "message": "Keyboard unlocked"}
             except:
@@ -355,7 +355,7 @@ async def press(request: PressRequest):
         raise HTTPException(status_code=400, detail=f"Invalid key: {key_to_press}")
 
     try:
-        result = session.execute(f"{key_to_press}()")
+        result = session._send_command(f"{key_to_press}()")
 
         # Update metadata
         session_metadata["last_action"] = f"press_{key_to_press}"
@@ -411,11 +411,11 @@ async def wait(request: WaitRequest):
 
     try:
         if request.condition == "ready":
-            result = session.execute(f"Wait({request.timeout},InputField)")
+            result = session._send_command(f"Wait({request.timeout},InputField)")
         elif request.condition == "change":
-            result = session.execute(f"Wait({request.timeout},Output)")
+            result = session._send_command(f"Wait({request.timeout},Output)")
         else:
-            result = session.execute(f"Wait({request.timeout},{request.condition})")
+            result = session._send_command(f"Wait({request.timeout},{request.condition})")
 
         # Update metadata
         session_metadata["last_action"] = f"wait_{request.condition}"
@@ -438,7 +438,7 @@ async def disconnect():
         raise HTTPException(status_code=500, detail="Session not initialized")
 
     try:
-        result = session.execute("Disconnect()")
+        result = session._send_command("Disconnect()")
 
         # Update metadata
         session_metadata["last_action"] = "disconnect"
@@ -458,7 +458,7 @@ async def get_status():
     connected = False
     if session and session.process and session.process.poll() is None:
         try:
-            session.execute("Query(ConnectionState)")
+            session._send_command("Query(ConnectionState)")
             connected = True
         except:
             connected = False

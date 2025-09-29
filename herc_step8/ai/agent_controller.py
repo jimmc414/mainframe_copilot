@@ -413,9 +413,9 @@ Respond with appropriate tool call."""
             elif "logout" in content or "logoff" in content:
                 return self.run_flow("logout.yaml")
             elif "enter" in content or "press enter" in content:
-                return self.press("Enter")
+                return self.press_key("Enter")
             elif "clear" in content:
-                return self.press("Clear")
+                return self.press_key("Clear")
             elif "fill" in content and "field" in content:
                 # Extract field details from content if possible
                 import re
@@ -426,7 +426,7 @@ Respond with appropriate tool call."""
             elif "connect" in content:
                 return self.connect()
             elif "disconnect" in content:
-                return self.disconnect()
+                return self.bridge.disconnect()
 
             # If no action detected, return the LLM response as-is
             return {"message": response.get("content", "No action determined")}
