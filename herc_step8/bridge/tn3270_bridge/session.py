@@ -117,6 +117,17 @@ class S3270Session:
             try:
                 line = self.process.stdout.readline()
                 if line:
+                    # Handle both string and bytes, with proper EBCDIC decoding
+                    if isinstance(line, bytes):
+                        try:
+                            line = line.decode('utf-8')
+                        except UnicodeDecodeError:
+                            # Try EBCDIC encoding (code page 037)
+                            try:
+                                line = line.decode('cp037', errors='replace')
+                            except:
+                                # Fallback to latin-1 which accepts all byte values
+                                line = line.decode('latin-1', errors='replace')
                     self.output_queue.put(line.strip())
             except Exception as e:
                 logger.error(f"Reader thread error: {e}")

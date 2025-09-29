@@ -14,27 +14,33 @@ NC='\033[0m' # No Color
 # Detect base directory - support both repo structure and runtime structure
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Check if we're in the repository structure
+# Check if we're in the repository structure and set up runtime directory
 if [ -d "${SCRIPT_DIR}/herc_step8" ]; then
-    echo "Detected repository structure, using herc_step8 as base"
-    HERC_HOME="${SCRIPT_DIR}/herc_step8"
+    echo "Detected repository structure"
+    # Always ensure ~/herc runtime directory exists with proper structure
+    if [ ! -d "${HOME}/herc" ]; then
+        echo "Setting up runtime directory: ~/herc"
+        mkdir -p "${HOME}/herc"
+        # Copy necessary components to runtime directory
+        cp -r "${SCRIPT_DIR}/herc_step8/"* "${HOME}/herc/" 2>/dev/null || true
+    else
+        echo "Runtime directory exists, syncing components..."
+        # Sync components but preserve MVS files if they exist
+        rsync -av --exclude='mvs38j' "${SCRIPT_DIR}/herc_step8/" "${HOME}/herc/" 2>/dev/null || \
+            cp -r "${SCRIPT_DIR}/herc_step8/"* "${HOME}/herc/" 2>/dev/null || true
+    fi
+    HERC_HOME="${HOME}/herc"
 elif [ -d "${HOME}/herc" ]; then
     echo "Using existing runtime directory: ~/herc"
     HERC_HOME="${HOME}/herc"
+elif [ -d "${SCRIPT_DIR}/ai" ] && [ -d "${SCRIPT_DIR}/bridge" ]; then
+    # We're already in a proper herc structure
+    echo "Running from herc directory"
+    HERC_HOME="${SCRIPT_DIR}"
 else
-    echo "Creating runtime directory: ~/herc"
-    # Setup runtime directory from repository
-    if [ -d "${SCRIPT_DIR}/herc_step8" ]; then
-        cp -r "${SCRIPT_DIR}/herc_step8" "${HOME}/herc"
-    elif [ -d "${SCRIPT_DIR}/ai" ] && [ -d "${SCRIPT_DIR}/bridge" ]; then
-        # We're already in a proper structure
-        HERC_HOME="${SCRIPT_DIR}"
-    else
-        echo -e "${RED}Error: Cannot find required directories (ai, bridge, etc.)${NC}"
-        echo "Please ensure you're running from the cloned repository."
-        exit 1
-    fi
-    HERC_HOME="${HOME}/herc"
+    echo -e "${RED}Error: Cannot find required directories (ai, bridge, etc.)${NC}"
+    echo "Please ensure you're running from the cloned repository."
+    exit 1
 fi
 
 cd "$HERC_HOME"
@@ -78,20 +84,37 @@ check_service() {
 check_mvs_files() {
     echo -e "${YELLOW}Checking for MVS files...${NC}"
 
-    if [ ! -d "$HERC_HOME/mvs38j/mvs-tk5" ]; then
-        echo -e "${RED}✗${NC} MVS TK5 not found at $HERC_HOME/mvs38j/mvs-tk5"
+    # Check both possible locations
+    if [ ! -d "$HERC_HOME/mvs38j/mvs-tk5" ] && [ ! -d "${HOME}/herc/mvs38j/mvs-tk5" ]; then
+        echo -e "${RED}✗${NC} MVS TK5 not found"
         echo
         echo "MVS 3.8J system files are required but not included in the repository."
         echo "The files are 1.1GB and must be downloaded separately."
         echo
-        echo "To download MVS TK5, run:"
-        echo "  /mnt/c/python/mainframe_copilot/scripts/download_mvs.sh"
+        echo "Would you like to download MVS TK5 now? (y/N)"
+        read -n 1 -r
         echo
-        echo "Or download manually from:"
-        echo "  http://wotho.ethz.ch/tk4-/tk4-_v1.00_current.zip"
-        echo "And extract to: $HERC_HOME/mvs38j/"
-        echo
-        exit 1
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            # Try to run download script
+            if [ -f "/mnt/c/python/mainframe_copilot/scripts/download_mvs.sh" ]; then
+                /mnt/c/python/mainframe_copilot/scripts/download_mvs.sh
+            elif [ -f "${SCRIPT_DIR}/scripts/download_mvs.sh" ]; then
+                ${SCRIPT_DIR}/scripts/download_mvs.sh
+            else
+                echo "Download script not found. Please download manually from:"
+                echo "  http://wotho.ethz.ch/tk4-/tk4-_v1.00_current.zip"
+                echo "And extract to: ${HOME}/herc/mvs38j/"
+                exit 1
+            fi
+        else
+            echo "To download MVS TK5 later, run:"
+            echo "  /mnt/c/python/mainframe_copilot/scripts/download_mvs.sh"
+            echo
+            echo "Or download manually from:"
+            echo "  http://wotho.ethz.ch/tk4-/tk4-_v1.00_current.zip"
+            echo "And extract to: ${HOME}/herc/mvs38j/"
+            exit 1
+        fi
     fi
 
     # Check for required files
@@ -207,7 +230,7 @@ start_bridge() {
 start_watchdog() {
     if [ "$MODE" = "production" ]; then
         echo -e "${YELLOW}Starting watchdog monitor...${NC}"
-        nohup python "$HERC_HOME/tools/watchdog.py" > "$HERC_HOME/logs/watchdog.log" 2>&1 &
+        nohup python3 "$HERC_HOME/tools/watchdog.py" > "$HERC_HOME/logs/watchdog.log" 2>&1 &
         echo -e "${GREEN}✓${NC} Watchdog started"
     fi
 }
@@ -218,12 +241,12 @@ start_viewer() {
 
         # Start viewer in new terminal if possible
         if command -v gnome-terminal > /dev/null; then
-            gnome-terminal -- python "$HERC_HOME/ai/viewer.py"
+            gnome-terminal -- python3 "$HERC_HOME/ai/viewer.py"
         elif command -v xterm > /dev/null; then
-            xterm -e python "$HERC_HOME/ai/viewer.py" &
+            xterm -e python3 "$HERC_HOME/ai/viewer.py" &
         else
             # Run in background if no terminal available
-            nohup python "$HERC_HOME/ai/viewer.py" --simple > "$HERC_HOME/logs/viewer.log" 2>&1 &
+            nohup python3 "$HERC_HOME/ai/viewer.py" --simple > "$HERC_HOME/logs/viewer.log" 2>&1 &
         fi
 
         echo -e "${GREEN}✓${NC} Viewer started"

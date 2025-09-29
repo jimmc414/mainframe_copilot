@@ -72,7 +72,7 @@ class ConnectRequest(BaseModel):
 
 class ActionsRequest(BaseModel):
     actions: List[str] = Field(description="List of s3270 actions to execute")
-    validate: bool = Field(default=True, description="Validate actions against allowlist")
+    validation_enabled: bool = Field(default=True, description="Validate actions against allowlist")
 
 class FillRequest(BaseModel):
     row: int = Field(description="Row position (1-based)")
@@ -284,7 +284,7 @@ async def execute_actions(request: ActionsRequest):
         raise HTTPException(status_code=500, detail="Session not initialized")
 
     # Validate actions if requested
-    if request.validate:
+    if request.validation_enabled:
         for action in request.actions:
             if not validate_action(action):
                 raise HTTPException(
